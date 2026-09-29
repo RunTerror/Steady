@@ -6,8 +6,37 @@
 	objectVersion = 90;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A035DAE2306A80C600AAD458 /* watch-experiment Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = A035DAD8306A80C600AAD458 /* watch-experiment Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A0C207AD30595B0F0063A1B6 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = A0C207AC30595B0F0063A1B6 /* SnapKit */; };
+		C4A71157000000000000000C /* ChatList in Frameworks */ = {isa = PBXBuildFile; productRef = C4A71157000000000000000B /* ChatList */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A035DAE0306A80C600AAD458 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A035DAD7306A80C600AAD458;
+			remoteInfo = "watch-experiment Watch App";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A035DAE3306A80C600AAD458 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolder = Product;
+			files = (
+				A035DAE2306A80C600AAD458 /* watch-experiment Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* Untitled Project.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Untitled Project.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A035DAD8306A80C600AAD458 /* watch-experiment Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "watch-experiment Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +45,22 @@
 			path = "Untitled Project";
 			sourceTree = "<group>";
 		};
+		A035DAD9306A80C600AAD458 /* watch-experiment Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "watch-experiment Watch App";
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		000000000000000130000000 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				A0C207AD30595B0F0063A1B6 /* SnapKit in Frameworks */,
+				C4A71157000000000000000C /* ChatList in Frameworks */,
+			);
+		};
+		A035DAD5306A80C600AAD458 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
 			);
@@ -31,6 +72,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000010 /* Untitled Project */,
+				A035DAD9306A80C600AAD458 /* watch-experiment Watch App */,
 				000000000000000000000020 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -39,6 +81,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000120 /* Untitled Project.app */,
+				A035DAD8306A80C600AAD458 /* watch-experiment Watch App.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -53,15 +96,41 @@
 				000000000000000120000000 /* Sources */,
 				000000000000000130000000 /* Frameworks */,
 				000000000000000140000000 /* Resources */,
+				A035DAE3306A80C600AAD458 /* Embed Watch Content */,
 			);
 			buildRules = (
+			);
+			dependencies = (
+				A035DAE1306A80C600AAD458 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				000000000000000000000010 /* Untitled Project */,
 			);
 			name = "Untitled Project";
+			packageProductDependencies = (
+				A0C207AC30595B0F0063A1B6 /* SnapKit */,
+				C4A71157000000000000000B /* ChatList */,
+			);
 			productName = MyApp;
 			productReference = 000000000000000000000120 /* Untitled Project.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A035DAD7306A80C600AAD458 /* watch-experiment Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A035DAE6306A80C600AAD458 /* Build configuration list for PBXNativeTarget "watch-experiment Watch App" */;
+			buildPhases = (
+				A035DAD4306A80C600AAD458 /* Sources */,
+				A035DAD5306A80C600AAD458 /* Frameworks */,
+				A035DAD6306A80C600AAD458 /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				A035DAD9306A80C600AAD458 /* watch-experiment Watch App */,
+			);
+			name = "watch-experiment Watch App";
+			productName = "watch-experiment Watch App";
+			productReference = A035DAD8306A80C600AAD458 /* watch-experiment Watch App.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -71,11 +140,14 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2630;
+				LastSwiftUpdateCheck = 2700;
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					000000000000000100000000 = {
 						CreatedOnToolsVersion = 26.3;
+					};
+					A035DAD7306A80C600AAD458 = {
+						CreatedOnToolsVersion = 27.0;
 					};
 				};
 			};
@@ -88,18 +160,28 @@
 			);
 			mainGroup = 000000000000000000000001;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A0C207AB30595B0F0063A1B6 /* XCRemoteSwiftPackageReference "snapkit" */,
+				C4A71157000000000000000A /* XCLocalSwiftPackageReference "Packages/ChatList" */,
+			);
 			preferredProjectObjectVersion = 90;
 			productRefGroup = 000000000000000000000020 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				000000000000000100000000 /* Untitled Project */,
+				A035DAD7306A80C600AAD458 /* watch-experiment Watch App */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		000000000000000140000000 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		A035DAD6306A80C600AAD458 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
 			);
@@ -112,7 +194,20 @@
 			files = (
 			);
 		};
+		A035DAD4306A80C600AAD458 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A035DAE1306A80C600AAD458 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A035DAD7306A80C600AAD458 /* watch-experiment Watch App */;
+			targetProxy = A035DAE0306A80C600AAD458 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		000000000000000011000000 /* Debug configuration for PBXProject "Untitled Project" */ = {
@@ -252,6 +347,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WMF4K99XLW;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -289,6 +385,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WMF4K99XLW;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -321,6 +418,71 @@
 			};
 			name = Release;
 		};
+		A035DAE4306A80C600AAD458 /* Debug configuration for PBXNativeTarget "watch-experiment Watch App" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WMF4K99XLW;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "watch-experiment";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "devplaceholder.G7MF7DG6.Untitled-Project";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "devplaceholder.G7MF7DG6.Untitled-Project.watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+			};
+			name = Debug;
+		};
+		A035DAE5306A80C600AAD458 /* Release configuration for PBXNativeTarget "watch-experiment Watch App" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WMF4K99XLW;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "watch-experiment";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "devplaceholder.G7MF7DG6.Untitled-Project";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "devplaceholder.G7MF7DG6.Untitled-Project.watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -340,7 +502,46 @@
 			);
 			defaultConfigurationName = Release;
 		};
+		A035DAE6306A80C600AAD458 /* Build configuration list for PBXNativeTarget "watch-experiment Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A035DAE4306A80C600AAD458 /* Debug configuration for PBXNativeTarget "watch-experiment Watch App" */,
+				A035DAE5306A80C600AAD458 /* Release configuration for PBXNativeTarget "watch-experiment Watch App" */,
+			);
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		C4A71157000000000000000A /* XCLocalSwiftPackageReference "Packages/ChatList" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/ChatList;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A0C207AB30595B0F0063A1B6 /* XCRemoteSwiftPackageReference "snapkit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/snapkit/snapkit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A0C207AC30595B0F0063A1B6 /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A0C207AB30595B0F0063A1B6 /* XCRemoteSwiftPackageReference "snapkit" */;
+			productName = SnapKit;
+		};
+		C4A71157000000000000000B /* ChatList */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C4A71157000000000000000A /* XCLocalSwiftPackageReference "Packages/ChatList" */;
+			productName = ChatList;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 000000000000000000000000 /* Project object */;
 }

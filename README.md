@@ -1,4 +1,4 @@
-# ChatList
+# Steady
 
 A chat message list that loads older history at the top without shifting
 what the user is reading.
@@ -9,7 +9,7 @@ what the user is reading.
 
 The hard part of a chat list is the prepend. Insert older messages above the
 viewport in an ordinary list and everything the reader is looking at drops by
-the height of the new rows. ChatList avoids that structurally rather than by
+the height of the new rows. Steady avoids that structurally rather than by
 correcting the offset afterwards: the collection view's content size is a
 fixed canvas and never grows, so there is nothing for the scroll view to
 adjust. Older messages get negative positions above an anchor, newer ones
@@ -17,30 +17,50 @@ positive positions below it, and the empty canvas on either side is hidden
 with negative content insets. A page arriving changes one inset and nothing
 else.
 
-## What is in the package today
+## What is in the package
 
 | Type | Role |
 |---|---|
-| `Message` | The value a row shows. Server-issued id, stable across edits. |
+| `ChatListViewController<Item>` | The list. Generic over any `Identifiable` item. |
+| `Message` | A simple message value, if you do not have your own item type. |
 | `Pager` | One direction of loading. Answers "may I load right now?" |
-| `MessageRepository` | The seam. The list asks for pages; you decide where they come from. |
 
-The UIKit layer (`ChatLayout`, `MessageCell`, `ChatViewController`) and the
-SwiftUI composer still live in the host app and move here as the boundary is
-worked out.
+Cells, measurement and data loading are yours.
+
+## Repository layout
+
+| Path | What |
+|---|---|
+| `Package.swift`, `Sources/Steady/` | The package. |
+| `Example/SteadyExample.xcodeproj` | A demo app that uses the package from this checkout. Work in progress. |
+| `plan/` | Design notes. |
 
 ## Requirements
 
-iOS 26. Swift 5 language mode with default `MainActor` isolation, matching
+iOS 17 or later. Swift 5 language mode with default `MainActor` isolation, matching
 the host app, so code moving across the boundary does not change meaning.
 
 ## Usage
 
 ```swift
-import ChatList
+import Steady
 
-struct LiveRepository: MessageRepository {
-    func latest(limit: Int) async -> [Message] { ... }
-    func page(before cursor: Message.ID, limit: Int) async -> [Message] { ... }
+let list = ChatListViewController<Message>()
+
+let registration = UICollectionView.CellRegistration<MyCell, Message> { cell, _, message in
+    cell.configure(with: message)
 }
+list.cellProvider = { collectionView, indexPath, message in
+    collectionView.dequeueConfiguredReusableCell(using: registration, for: indexPath, item: message)
+}
+list.heightProvider = { message, width in
+    // Height of the row at this width.
+}
+list.onNeedsOlder = { oldest in
+    Task { list.prepend(await api.page(before: oldest.id)) }
+}
+
+list.setItems(await api.latest())       // first page, opens at the newest
+list.append(newMessage)                 // one new message
 ```
+

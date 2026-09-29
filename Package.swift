@@ -1,6 +1,6 @@
 // swift-tools-version: 6.2
 //
-//  ChatList
+//  Steady
 //  A chat message list that loads older history without moving what the
 //  user is reading.
 //
@@ -13,16 +13,16 @@
 import PackageDescription
 
 let package = Package(
-    name: "ChatList",
-    // Liquid Glass in the composer needs iOS 26. The app targets 27, which
-    // is allowed: a package may support MORE than its consumer needs.
-    platforms: [.iOS("26.0")],
+    name: "Steady",
+    // iOS 17 and later. The example app targets 27 (Liquid Glass composer),
+    // which is allowed: a package may support MORE than its consumer needs.
+    platforms: [.iOS(.v17)],
     products: [
-        .library(name: "ChatList", targets: ["ChatList"]),
+        .library(name: "Steady", targets: ["Steady"]),
     ],
     targets: [
         .target(
-            name: "ChatList",
+            name: "Steady",
             swiftSettings: [
                 // Match the app target exactly, or code moving across the
                 // boundary would change meaning:

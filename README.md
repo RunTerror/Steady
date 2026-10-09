@@ -1,178 +1,140 @@
 # Steady
 
-**A chat list for iOS that holds still.**
+**A chat list for iOS that keeps your messages exactly where they are.**
+
+[![Platform](https://img.shields.io/badge/platform-iOS%2017%2B-blue)](https://developer.apple.com/ios/)
+[![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange)](https://swift.org/)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 <p align="center">
   <a href="docs/media/demo.mp4">
-    <img src="docs/media/demo.webp" width="280" alt="Scrolling up through a chat in the example app. Older pages load above and the messages on screen do not move.">
+    <img src="docs/media/demo.webp" width="320" alt="Scrolling through a chat while older messages load without moving the visible content">
   </a>
 </p>
 
-I've lost count of how many times this has happened to me.
+## The problem
 
-You're scrolling back through an old chat, hunting for the address someone
-sent you in March. You find roughly the right spot, start reading, and the
-whole screen lurches. The app has quietly fetched another batch of older
-messages and stuffed them in above you, and the line you were reading has been
-shoved off the bottom of the screen. You scroll down to find it again. It
-happens again.
+You're reading an old message. You scroll up, another page loads, and suddenly the message you're looking at has moved.
 
-Almost every chat app handles this the same way. It lets the jump happen, then
-scrolls you back so fast you don't notice. Most of the time it gets away with
-it. Flick a little too quickly, though, or catch it while a photo is still
-loading, and you'll see the hop.
+Most chat lists work around this by adjusting the scroll position after inserting older messages. It usually works, but the list can still jump when cells resize, images load, or the user scrolls quickly.
 
-I wanted a list that simply doesn't move. So I made one.
+**Steady takes a different approach: older messages are inserted without changing the position of anything already on screen.**
 
-<p align="center">
-  <img src="docs/media/the-jump.svg" width="100%" alt="Animation. In most lists, an older page slams in at the top and shoves the message you are reading off screen, and a face turns dizzy. In Steady, the page lands above the screen, nothing moves, and the face sips tea.">
-</p>
+No scroll-offset corrections. No visible jumps.
 
-## How it stays still
+## How it works
 
-Imagine your conversation pinned to an absurdly tall wall. A million points
-tall, to be exact, which is over a thousand iPhone screens stacked end to end,
-roughly the height of a fifty-storey building. And it never gets any taller.
+Steady uses a fixed coordinate space instead of growing the scrollable content every time a page arrives.
 
-Your chat starts in the middle. Older messages get pinned above, newer ones
-below, always onto bare wall that was already there. A curtain covers the
-empty parts, so you can't scroll off into nothing.
+- **Fixed content size:** The underlying scroll view doesn't grow as messages load.
+- **Stable message positions:** Older messages occupy unused space above the existing content.
+- **No offset adjustments:** Prepending a page never requires writing to `contentOffset`.
+- **Lazy history loading:** Your data source fetches older messages as the user approaches the beginning of the loaded history.
 
-When older messages arrive, Steady pins them up and lifts the curtain a
-little. Nothing that was already on the wall moves, so nothing on your screen
-moves either. There's no jump to hide, because there never was one.
+The implementation uses a central anchor, negative item coordinates, and adjusted content insets to keep the visible region stable.
+
+See [`ChatLayout.swift`](Sources/Steady/Layout/ChatLayout.swift) for the implementation.
 
 <p align="center">
-  <img src="docs/media/the-wall.svg" width="100%" alt="Animation of the trick. A red curtain covers the empty wall above the chat. It lifts, three older messages are pinned onto the bare wall, and the phone screen below never moves.">
+  <img src="docs/media/the-wall.svg" width="100%" alt="Older messages are added above the visible region while existing messages remain stationary">
 </p>
 
-<details>
-<summary>Want to see the numbers?</summary>
+## Installation
 
-<br>
+Add Steady through Xcode:
 
-Here's one batch of older messages arriving, first in a plain list and then in
-Steady. Watch *msg-0 moved on screen*: 240 points in the plain list, zero in
-Steady. You can also [click through it yourself](docs/prepend-jump.html).
+1. Open **File → Add Package Dependencies**.
+2. Enter `https://github.com/RunTerror/Steady.git`.
+3. Select the version you want.
 
-<a href="docs/prepend-jump.html#virtual/0">
-  <img src="docs/media/prepend-jump-steps.gif" width="100%" alt="A slideshow of one insertion. In a plain ScrollView, msg-0 moves 240 points down the screen. In Steady, the new rows land above and msg-0 moves 0 points.">
-</a>
-
-For the UIKit-minded: `contentSize` never changes, older rows sit at negative
-offsets from an anchor in the middle, negative `contentInset`s are the curtain,
-and adding older messages only touches `contentInset.top`. `contentOffset` is
-never written. It all lives in [`ChatLayout.swift`](Sources/Steady/Layout/ChatLayout.swift).
-
-</details>
-
-## Getting it
-
-In Xcode, go to **File › Add Package Dependencies** and paste
-`https://github.com/RunTerror/Steady.git`. If you'd rather use `Package.swift`:
+Or add it to `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/RunTerror/Steady.git", from: "0.1.0")
+dependencies: [
+    .package(
+        url: "https://github.com/RunTerror/Steady.git",
+        from: "0.1.0"
+    )
+]
 ```
 
-This is version 0.1. It works, and the example app shows it off, but it will
-still change a little before 1.0.
+## Usage
 
-## Using it
-
-Steady wants three things from you: what a message looks like, how tall it is,
-and where the older messages come from. It takes care of the rest.
+Steady handles the layout and scroll-position stability. You provide the message cells, their heights, and the pagination callback.
 
 ```swift
 import Steady
 
-let list = ChatListViewController<Message>()
+let chat = ChatListViewController<Message>()
 
-list.cellProvider = { collectionView, indexPath, message in
-    collectionView.dequeueConfiguredReusableCell(using: registration, for: indexPath, item: message)
+chat.cellProvider = { collectionView, indexPath, message in
+    collectionView.dequeueConfiguredReusableCell(
+        using: registration,
+        for: indexPath,
+        item: message
+    )
 }
-list.heightProvider = { message, width in
+
+chat.heightProvider = { message, width in
     MessageCell.height(for: message, width: width)
 }
-list.onNeedsOlder = { oldest in
-    Task { list.prepend(await api.page(before: oldest.id)) }
+
+chat.onNeedsOlder = { oldestMessage in
+    Task { @MainActor in
+        let olderMessages = await api.page(
+            before: oldestMessage.id
+        )
+        chat.prepend(olderMessages)
+    }
 }
 
-list.setItems(await api.latest())
+chat.setItems(await api.latest())
 ```
 
-Using SwiftUI? Wrap it in a `UIViewControllerRepresentable`. The example app
-does exactly that in [`ChatListView.swift`](Example/SteadyExample/Chat/ChatListView.swift).
+The list opens at the newest message. As the user scrolls back, Steady requests older pages and inserts them without moving the visible messages.
 
-<details>
-<summary>Everything you can tweak</summary>
+For SwiftUI, wrap `ChatListViewController` in `UIViewControllerRepresentable`. See the [example implementation](Example/SteadyExample/Chat/ChatListView.swift).
 
-<br>
+## API
 
-| Property | What it's for |
+| API | Purpose |
 |---|---|
-| `cellProvider` | The cell for a message. |
-| `heightProvider` | How tall a message is at a given width. Steady remembers the answer. |
-| `onNeedsOlder` | Called as the reader nears the top. Answer with `prepend(_:)`. An empty page means there's no more history. |
-| `contextMenuProvider` | The menu that appears on a long press, or `nil` for none. |
-| `topInset`, `bottomInset` | Breathing room above the first message and below the last. |
-| `loadingView` | What to show before the first page arrives. |
-| `showsScrollIndicator` | Off unless you turn it on. |
-| `prefetchFraction` | How early to start loading, from 0 (the very top) to 1. Defaults to 0.25. |
+| `setItems(_:)` | Load the initial messages and open at the newest one. |
+| `prepend(_:)` | Insert older messages without shifting visible content. |
+| `append(_:from:)` | Append a new message, optionally animating it from the composer. |
+| `cellProvider` | Configure reusable message cells. |
+| `heightProvider` | Provide the height of a message for a given width. |
+| `onNeedsOlder` | Fetch another page when the user approaches the top. |
+| `contextMenuProvider` | Customize long-press context menus. |
 
-| Method | When to call it |
-|---|---|
-| `setItems(_:)` | The first page. The list opens at the newest message. |
-| `prepend(_:)` | An older page. Messages it already has are skipped, so overlapping pages are fine. |
-| `append(_:from:)` | A new message, optionally flying in from the composer. If it's already in the list, say a sent message echoed back by your server, it's updated in place. |
+Additional configuration includes top and bottom insets, a loading view, scroll-indicator visibility, and the history-prefetch threshold.
 
-A cell that adopts `ChatContextMenuPreviewing` can hand the long-press menu
-just its bubble to lift, instead of the whole row.
+See the example app for the complete API in action.
 
-</details>
+## Limitations
 
-## Try it before you trust it
+Steady is an early release. Here's what to know before using it in production:
 
-Open the app in [`Example/`](Example/) and run it. Pick any message, keep your
-eye on it, and scroll up slowly. Batches of older messages keep arriving above
-it, and it doesn't so much as twitch.
+- **Finite coordinate space:** Supports approximately 5,000 messages in either direction from the initial position.
+- **Explicit cell heights:** Your height provider must agree with the rendered cell's actual height.
+- **Scrollbar accuracy:** The scroll indicator reflects loaded content rather than the entire conversation history.
+- **Incomplete update handling:** Message deletion, height-changing edits, dynamic text-size changes, and pagination-error handling are not implemented yet.
 
-## What it doesn't do (yet)
+The current release is intended for experimentation and feedback. See the [open issues](https://github.com/RunTerror/Steady/issues) for ongoing work.
 
-I'd rather you hear the limits from me than discover them at 2 a.m.
+## Example
 
-The wall is tall, not endless. It holds about five thousand messages in each
-direction from wherever your chat opens. If your users scroll back further
-than that in one sitting, I'd honestly love to meet them.
+Run the app in [`Example/`](Example/) to see Steady in action. Scroll through a conversation while older pages load, and watch the visible messages stay put.
 
-Steady gets message heights from you instead of measuring cells itself. That's
-how it places everything so precisely, but it does mean your height function
-and your cell have to agree. Keep them side by side and they will.
+## Contributing
 
-The scroll bar only knows about messages that have already loaded, so it
-creeps down every time an older page arrives. That's why it stays off unless
-you ask for it.
+Bug reports, ideas, and pull requests are welcome.
 
-A few things aren't built yet: deleting messages, edits that change a
-message's height, reacting when someone changes their text size, and a way to
-tell Steady that a page failed to load. They're next.
+- [Open an issue](https://github.com/RunTerror/Steady/issues)
+- [Star the repository](https://github.com/RunTerror/Steady/stargazers)
 
-## If Steady helped
-
-<p align="center">
-  <img src="docs/media/coffee.svg" width="240" alt="A steaming cup of coffee next to a twinkling star.">
-</p>
-
-If Steady saved you an afternoon of wrestling with scroll offsets, the nicest
-thank-you is a star. It's genuinely how other developers find it.
-
-<p align="center">
-  <a href="https://github.com/RunTerror/Steady/stargazers"><img src="https://img.shields.io/github/stars/RunTerror/Steady?style=social" alt="Star Steady on GitHub"></a>
-</p>
-
-Found a bug, or have an idea? [Open an issue](https://github.com/RunTerror/Steady/issues).
-I read every one.
+If you've built a chat interface on iOS, feedback on the layout approach and its edge cases would be especially useful.
 
 ---
 
-<sub>Made with too much chai by Gaajar, starting 21 September 2026 · iOS 17 or later · [MIT licence](LICENSE)</sub>
+Made by Gaajar · iOS 17+ · MIT License

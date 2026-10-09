@@ -194,12 +194,15 @@ where Item.ID: Sendable {
 
     // MARK: Data in
 
-    /// Replaces everything and scrolls to the newest item.
+    /// Replaces everything and scrolls to the newest item. Repeated ids keep
+    /// their first occurrence.
     public func setItems(_ newItems: [Item]) {
+        // Data can arrive before the view is on screen.
+        loadViewIfNeeded()
         hasLoaded = true
         teardownLoadingView(loadingView)
 
-        items = newItems
+        items = removingDuplicates(newItems)
         applySnapshot(animatingDifferences: false)
         // Run prepare() now so hidingInsets sees every item before scrolling.
         collectionView.layoutIfNeeded()
@@ -208,11 +211,16 @@ where Item.ID: Sendable {
     }
 
     /// Inserts older items, oldest first, above the current ones. Nothing on
-    /// screen moves. An empty array means history is exhausted.
-    public func prepend(_ older: [Item]) {
+    /// screen moves. Items already in the list are skipped, so overlapping
+    /// pages are safe. A page with nothing new means history is exhausted.
+    public func prepend(_ page: [Item]) {
+        loadViewIfNeeded()
+        let known = Set(items.map(\.id))
+        let older = removingDuplicates(page).filter { !known.contains($0.id) }
+
         olderPager.finish(receivedCount: older.count)
         guard !older.isEmpty else {
-            pagingLog.info("prepend: empty page, history exhausted")
+            pagingLog.info("prepend: nothing new in a page of \(page.count), history exhausted")
             return
         }
 
@@ -230,7 +238,20 @@ where Item.ID: Sendable {
 
     /// Adds one item at the end and scrolls to it. If `sourceFrame` (window
     /// coordinates) is given, the new row animates from there.
+    ///
+    /// If an item with the same id is already in the list, such as a sent
+    /// message echoed back by the server, it is updated in place instead.
+    /// Its row keeps its current height.
     public func append(_ item: Item, from sourceFrame: CGRect? = nil) {
+        loadViewIfNeeded()
+        if let index = items.firstIndex(where: { $0.id == item.id }) {
+            items[index] = item
+            var snapshot = dataSource.snapshot()
+            snapshot.reconfigureItems([item.id])
+            dataSource.apply(snapshot, animatingDifferences: false)
+            return
+        }
+
         items.append(item)
 
         guard let sourceFrame else {
@@ -252,6 +273,13 @@ where Item.ID: Sendable {
     }
 
     // MARK: Snapshot
+
+    /// Drops repeated ids, keeping the first. The data source traps on
+    /// duplicate identifiers.
+    private func removingDuplicates(_ list: [Item]) -> [Item] {
+        var seen = Set<Item.ID>()
+        return list.filter { seen.insert($0.id).inserted }
+    }
 
     private func applySnapshot(animatingDifferences: Bool) {
         var snapshot = NSDiffableDataSourceSnapshot<Section, Item.ID>()

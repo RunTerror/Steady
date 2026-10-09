@@ -64,13 +64,9 @@ struct ChatListView: UIViewControllerRepresentable {
         }
 
         // The list shows its loading view until the first page arrives.
-        // setItems touches the collection view, which exists only after the
-        // view has loaded.
         Task { [weak list] in
             let latest = await server.latest()
-            guard let list else { return }
-            list.loadViewIfNeeded()
-            list.setItems(latest)
+            list?.setItems(latest)
         }
         return list
     }

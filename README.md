@@ -46,6 +46,18 @@ never written. See [`ChatLayout.swift`](Sources/Steady/Layout/ChatLayout.swift).
 Keep an eye on *msg-0 moved on screen*. A plain list shifts it 240 points;
 Steady, not at all. [Step through it yourself](docs/prepend-jump.html).
 
+## Installing it
+
+In Xcode, choose **File › Add Package Dependencies** and paste
+`https://github.com/RunTerror/Steady.git`. Or add it to `Package.swift`:
+
+```swift
+.package(url: "https://github.com/RunTerror/Steady.git", from: "0.1.0")
+```
+
+Steady is at 0.1, an early release. It's ready to try; expect the API to
+shift a little before 1.0.
+
 ## Using it
 
 You bring the cells, their heights and the history. Steady decides where
@@ -88,8 +100,8 @@ list.setItems(await api.latest())
 | Method | Use |
 |---|---|
 | `setItems(_:)` | The first page. Opens at the newest item. |
-| `prepend(_:)` | An older page. |
-| `append(_:from:)` | A new message, optionally flying in from the composer. |
+| `prepend(_:)` | An older page. Messages already in the list are skipped, so overlapping pages are fine. |
+| `append(_:from:)` | A new message, optionally flying in from the composer. If its id is already in the list, say a sent message echoed back, it's updated in place. |
 
 A cell that adopts `ChatContextMenuPreviewing` can hand the context menu just
 its bubble to lift, instead of the whole row.
@@ -109,9 +121,10 @@ Pages arrive above it, one after another, and it doesn't flinch.
   exact. Keep the height function beside the cell so the two never disagree.
 - **The scroll bar only knows what's loaded,** so it drifts as history arrives.
   It's off by default for that reason.
-- **Not yet:** deleting messages, edits that change a message's height, and a
-  way to report a page that failed to load.
+- **Not yet:** deleting messages, edits that change a message's height,
+  reacting to a change in text size, and a way to report a page that failed to
+  load.
 
 ---
 
-<sub>iOS 17 or later · Swift 5 language mode, `MainActor` by default · Written by Gaajar, begun 21 September 2026</sub>
+<sub>iOS 17 or later · Swift 5 language mode, `MainActor` by default · [MIT licence](LICENSE) · Written by Gaajar, begun 21 September 2026</sub>

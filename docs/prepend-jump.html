@@ -1,0 +1,555 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>The Prepend Jump</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #F4F6F8;
+    --surface: #FFFFFF;
+    --ink: #17212B;
+    --muted: #5C6B79;
+    --line: #D6DDE4;
+    --line-strong: #AAB6C2;
+    --accent: #D9731A;        /* viewport frame */
+    --accent-soft: #FBEBDC;
+    --me: #2F6FED;            /* my bubbles */
+    --me-ink: #FFFFFF;
+    --other: #E4E9EE;         /* their bubbles */
+    --other-ink: #17212B;
+    --new: #159C7C;           /* freshly inserted rows */
+    --new-soft: #DDF3EC;
+    --bad: #C2413A;
+    --bad-soft: #F8E3E1;
+    --hatch: #C9D2DB;
+    --code-bg: #EEF2F5;
+    --focus: #2F6FED;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0F1519;
+      --surface: #161D23;
+      --ink: #E6ECF1;
+      --muted: #94A2AF;
+      --line: #28323C;
+      --line-strong: #4A5866;
+      --accent: #F0A24E;
+      --accent-soft: #3A2A18;
+      --me: #3D82F6;
+      --me-ink: #FFFFFF;
+      --other: #27313A;
+      --other-ink: #E6ECF1;
+      --new: #34C9A2;
+      --new-soft: #12352C;
+      --bad: #EF6E66;
+      --bad-soft: #3C1F1D;
+      --hatch: #3A4651;
+      --code-bg: #0E1418;
+      --focus: #8AB4FF;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F1519;
+    --surface: #161D23;
+    --ink: #E6ECF1;
+    --muted: #94A2AF;
+    --line: #28323C;
+    --line-strong: #4A5866;
+    --accent: #F0A24E;
+    --accent-soft: #3A2A18;
+    --me: #3D82F6;
+    --me-ink: #FFFFFF;
+    --other: #27313A;
+    --other-ink: #E6ECF1;
+    --new: #34C9A2;
+    --new-soft: #12352C;
+    --bad: #EF6E66;
+    --bad-soft: #3C1F1D;
+    --hatch: #3A4651;
+    --code-bg: #0E1418;
+    --focus: #8AB4FF;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    padding-inline: 20px;
+    padding-block: 28px 56px;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+
+  header { margin-bottom: 22px; }
+  h1 {
+    font-family: "Bricolage Grotesque", "IBM Plex Sans", sans-serif;
+    font-weight: 700;
+    font-size: clamp(30px, 4.5vw, 42px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0 0 10px;
+    text-wrap: balance;
+  }
+  .lede { color: var(--muted); max-width: 62ch; margin: 0; }
+  .lede code, .body code, .readout code {
+    font-family: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+    font-size: 0.92em;
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  /* strategy tabs */
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+  .tab {
+    appearance: none; border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+    font: inherit; font-weight: 500; padding: 8px 14px; border-radius: 999px; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tab .k {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .tab[aria-selected="true"] { border-color: var(--ink); color: var(--ink); }
+  .tab:focus-visible, .btn:focus-visible, .dot:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  /* stage */
+  .stage {
+    display: grid; grid-template-columns: minmax(300px, 420px) 1fr; gap: 22px;
+    align-items: start;
+  }
+  @media (max-width: 760px) { .stage { grid-template-columns: 1fr; } }
+
+  .diagram {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    position: relative; height: 580px; overflow: hidden;
+    font-family: "IBM Plex Mono", monospace; font-size: 11px;
+  }
+  .world { position: absolute; inset: 0; }
+  .strip { position: absolute; left: 96px; width: 240px; top: 0; bottom: 0; }
+  .row {
+    position: absolute; left: 0; width: 100%; padding: 4px 8px;
+    transition: transform .6s cubic-bezier(.2,.7,.2,1), opacity .4s ease;
+    will-change: transform;
+  }
+  .row.off { opacity: .32; }
+  .row .bubble {
+    height: 100%; border-radius: 12px; display: flex; align-items: center;
+    padding: 0 10px; max-width: 78%; font-size: 12px;
+  }
+  .row.me .bubble { margin-left: auto; background: var(--me); color: var(--me-ink); border-bottom-right-radius: 4px; }
+  .row.other .bubble { background: var(--other); color: var(--other-ink); border-bottom-left-radius: 4px; }
+  .row.new .bubble { box-shadow: 0 0 0 2px var(--new); }
+  .row.loader .bubble {
+    max-width: 100%; justify-content: center; background: transparent; color: var(--muted);
+    border: 1px dashed var(--line-strong);
+  }
+  .row.enter { opacity: 0; }
+  .no-anim .row { transition: none; }
+
+  .viewport {
+    position: absolute; left: 92px; width: 248px; top: 120px; height: 300px;
+    border: 2px solid var(--accent); border-radius: 6px; pointer-events: none;
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+  .viewport .tag {
+    position: absolute; right: -2px; top: -22px; background: var(--accent); color: #fff;
+    padding: 1px 7px; border-radius: 4px 4px 0 0; font-size: 10px; letter-spacing: .06em; text-transform: uppercase;
+  }
+  .viewport .anchor {
+    position: absolute; left: -2px; right: -2px; top: -2px; height: 0; border-top: 2px dashed var(--accent);
+    opacity: 0; transition: opacity .3s;
+  }
+  .viewport .anchor.on { opacity: 1; }
+  .viewport .anchor span {
+    position: absolute; right: 0; top: 2px; font-size: 10px; color: var(--accent); background: var(--surface); padding: 0 4px;
+  }
+
+  .mask {
+    position: absolute; left: 96px; width: 240px;
+    background: repeating-linear-gradient(135deg, var(--hatch) 0 2px, transparent 2px 9px);
+    opacity: 0; transition: opacity .4s, transform .6s cubic-bezier(.2,.7,.2,1), height .6s cubic-bezier(.2,.7,.2,1);
+    color: var(--muted);
+  }
+  .mask.on { opacity: 1; }
+  .mask .lbl {
+    position: absolute; left: 8px; background: var(--surface); padding: 1px 5px; border-radius: 3px; white-space: nowrap;
+  }
+  .mask.top .lbl { bottom: 6px; }
+  .mask.bottom .lbl { top: 6px; }
+
+  .edge {
+    position: absolute; left: 96px; width: 240px; height: 0; border-top: 1px solid var(--line-strong);
+    transition: transform .6s cubic-bezier(.2,.7,.2,1), opacity .3s;
+    color: var(--muted);
+  }
+  .edge .lbl { position: absolute; left: 0; top: -16px; white-space: nowrap; }
+  .no-anim .edge, .no-anim .mask, .no-anim .brace { transition: none; }
+
+  /* ruler / brace at left */
+  .brace {
+    position: absolute; left: 44px; width: 40px; border-left: 1px solid var(--line-strong);
+    transition: transform .6s cubic-bezier(.2,.7,.2,1), height .6s cubic-bezier(.2,.7,.2,1), opacity .3s;
+    color: var(--muted);
+  }
+  .brace::before, .brace::after {
+    content: ""; position: absolute; left: 0; width: 10px; height: 0; border-top: 1px solid var(--line-strong);
+  }
+  .brace::before { top: 0; } .brace::after { bottom: 0; }
+  .brace .lbl {
+    position: absolute; left: -38px; top: 50%; transform: translateY(-50%); width: 72px;
+    text-align: right; line-height: 1.25; font-variant-numeric: tabular-nums;
+  }
+  .brace .lbl b { display: block; color: var(--ink); font-weight: 500; }
+  .brace.zero { border-left-color: transparent; }
+  .brace.zero::after { display: none; }
+
+  .legend {
+    position: absolute; left: 10px; bottom: 8px; display: flex; gap: 12px; flex-wrap: wrap; color: var(--muted);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .legend .vp { border: 2px solid var(--accent); }
+  .legend .nw { border: 2px solid var(--new); }
+  .legend .hs { background: repeating-linear-gradient(135deg, var(--hatch) 0 2px, transparent 2px 5px); border: 1px solid var(--line); }
+
+  /* explanation panel */
+  .panel { display: flex; flex-direction: column; gap: 14px; }
+  .stepbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .stepnum {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+  }
+  .dots { display: flex; gap: 6px; }
+  .dot {
+    appearance: none; border: 0; width: 22px; height: 6px; border-radius: 3px; background: var(--line); cursor: pointer; padding: 0;
+  }
+  .dot[aria-current="step"] { background: var(--ink); }
+  .body h2 {
+    font-family: "Bricolage Grotesque", "IBM Plex Sans", sans-serif; font-weight: 600; font-size: 24px; line-height: 1.15;
+    margin: 0 0 8px; text-wrap: balance;
+  }
+  .body p { margin: 0 0 10px; max-width: 58ch; }
+  .body pre {
+    margin: 8px 0 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px;
+    font-family: "IBM Plex Mono", monospace; font-size: 12.5px; line-height: 1.5; overflow-x: auto;
+  }
+
+  .readout {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line);
+    border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+  }
+  .cell { background: var(--surface); padding: 9px 12px; }
+  .cell .k { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-family: "IBM Plex Mono", monospace; }
+  .cell .v { font-family: "IBM Plex Mono", monospace; font-size: 15px; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .cell .v.good { color: var(--new); }
+  .cell .v.bad { color: var(--bad); }
+  .cell .v small { font-size: 11px; color: var(--muted); }
+
+  .nav { display: flex; gap: 8px; align-items: center; }
+  .btn {
+    appearance: none; font: inherit; font-weight: 500; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+    padding: 8px 16px; border-radius: 8px; cursor: pointer;
+  }
+  .btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .btn:disabled { opacity: .4; cursor: default; }
+  .hint { color: var(--muted); font-size: 12.5px; margin-left: auto; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .row, .edge, .mask, .brace, .viewport .anchor { transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>The Prepend Jump</h1>
+    <p class="lede">Why loading older messages shifts a chat list, and what three implementations do about it. The orange frame is the phone screen. Everything behind it is the scroll view's content, drawn in points. Step through each approach with the buttons or the arrow keys.</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Approach">
+    <button class="tab" role="tab" id="tab-plain" aria-selected="true" data-strategy="plain"><span class="k">A</span>Plain ScrollView</button>
+    <button class="tab" role="tab" id="tab-id" aria-selected="false" data-strategy="idbind"><span class="k">B</span>scrollPosition(id:)</button>
+    <button class="tab" role="tab" id="tab-virtual" aria-selected="false" data-strategy="virtual"><span class="k">C</span>Fixed canvas (Steady)</button>
+  </div>
+
+  <div class="stage">
+    <div class="diagram" id="diagram" aria-label="Scroll view diagram">
+      <div class="world" id="world">
+        <div class="mask top" id="maskTop"><span class="lbl" id="maskTopLbl"></span></div>
+        <div class="mask bottom" id="maskBottom"><span class="lbl" id="maskBottomLbl"></span></div>
+        <div class="edge" id="edgeTop"><span class="lbl" id="edgeTopLbl">content top · y = 0</span></div>
+        <div class="brace" id="brace"><span class="lbl" id="braceLbl"></span></div>
+        <div class="strip" id="strip"></div>
+        <div class="viewport">
+          <span class="tag">screen</span>
+          <div class="anchor" id="anchor"><span>anchor .top</span></div>
+        </div>
+      </div>
+      <div class="legend">
+        <span><i class="vp"></i>viewport</span>
+        <span><i class="nw"></i>inserted rows</span>
+        <span><i class="hs"></i>masked virtual space</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="stepbar">
+        <span class="stepnum" id="stepnum">Step 1 of 5</span>
+        <div class="dots" id="dots"></div>
+      </div>
+      <div class="body" id="body"></div>
+      <div class="readout" id="readout"></div>
+      <div class="nav">
+        <button class="btn" id="prev">Back</button>
+        <button class="btn primary" id="next">Next</button>
+        <span class="hint">← → keys also work</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // ----- geometry (1 px = 1 pt) -----
+  const VP_TOP = 120, VP_H = 300, STRIP_LEFT = 96, STRIP_W = 240;
+  const ANCHOR = 500_000, VIRTUAL_H = 1_000_000;
+
+  const baseHeights = [48, 72, 48, 48, 72, 48, 48, 72]; // msg-0 … msg-7
+  const olderHeights = [48, 72, 48, 72];                 // msg-4 … msg-1, 240 pt total
+  const OLDER_H = olderHeights.reduce((a, b) => a + b, 0);
+
+  function layoutRows(specs, startY) {
+    let y = startY; const out = [];
+    for (const s of specs) { out.push({ ...s, y }); y += s.h; }
+    return out;
+  }
+  function baseRows(startY, opts = {}) {
+    return layoutRows(baseHeights.map((h, i) => ({ id: 'msg-' + i, label: 'msg-' + i, h, kind: i % 2 ? 'me' : 'other' })), startY);
+  }
+  function olderRows(startY, kind = 'new') {
+    return layoutRows(olderHeights.map((h, i) => ({ id: 'msg--' + (4 - i), label: 'msg -' + (4 - i), h, kind: (i % 2 ? 'other' : 'me'), isNew: true })), startY);
+  }
+  const fmt = n => n.toLocaleString('en-US');
+
+  // ----- strategies -----
+  const strategies = {
+    plain: {
+      name: 'Plain ScrollView',
+      steps: [
+        {
+          title: 'One number describes the position',
+          body: `<p>A <code>ScrollView</code> remembers <code>contentOffset.y</code>: the distance from the top of its content to the top of the screen. Here it is 168 pt, so the screen starts partway into msg-2. Nothing records <em>which row</em> is being shown.</p>`,
+          state: { offset: 168, rows: baseRows(0), contentH: 456 }
+        },
+        {
+          title: 'The user scrolls to the top',
+          body: `<p>The offset falls to 0. msg-0 enters the screen and its <code>onAppear</code> fires, so the app asks the server for the previous page of history.</p>`,
+          state: { offset: 0, rows: baseRows(0), contentH: 456, userScroll: true }
+        },
+        {
+          title: 'Older messages are inserted at index 0',
+          body: `<p>Four rows totalling 240 pt land above msg-0. Layout pushes every existing row down by that amount. The offset is still 0, and 0 now points at the new rows. The row the user was reading has moved 240 pt down the screen. That is the jump.</p><pre>messages.insert(contentsOf: older, at: 0)
+// contentOffset.y is still 0</pre>`,
+          state: { offset: 0, rows: [...olderRows(0), ...baseRows(OLDER_H)], contentH: 456 + OLDER_H }
+        },
+        {
+          title: 'Back at the bottom',
+          body: `<p>For comparison, the user scrolls to the newest message. The offset is now 396 pt, which is the content height minus the screen height.</p>`,
+          state: { offset: 396, rows: [...olderRows(0), ...baseRows(OLDER_H)], contentH: 456 + OLDER_H, userScroll: true }
+        },
+        {
+          title: 'Appending never jumps',
+          body: `<p>Two new messages are added at the end. The content above the screen is unchanged, so the same offset still shows the same rows, and the new ones sit just below the fold. This is why libraries that invert the list get prepends for free: flipping turns a prepend into an append.</p>`,
+          state: { offset: 396, rows: [...olderRows(0), ...baseRows(OLDER_H), ...layoutRows([{ id: 'msg-8', label: 'msg-8', h: 48, kind: 'me', isNew: true }, { id: 'msg-9', label: 'msg-9', h: 48, kind: 'other', isNew: true }], OLDER_H + 456)], contentH: 456 + OLDER_H + 96 }
+        }
+      ]
+    },
+    idbind: {
+      name: 'scrollPosition(id:)',
+      steps: [
+        {
+          title: 'Position tracked by row identity',
+          body: `<p>With <code>scrollTargetLayout()</code> on the stack and <code>scrollPosition(id:anchor:)</code> on the scroll view, SwiftUI keeps a binding updated with the id of the row at the anchor. The offset still exists, but it is no longer the source of truth.</p><pre>.scrollPosition(id: $topVisibleId, anchor: .top)
+// topVisibleId == "msg-0"</pre>`,
+          state: { offset: 0, rows: baseRows(0), contentH: 456, anchor: true, topId: 'msg-0' }
+        },
+        {
+          title: 'Layout pass: rows move down',
+          body: `<p>The insert happens exactly as before. Existing rows shift down 240 pt in content coordinates. If the frame were drawn now, you would see the jump.</p>`,
+          state: { offset: 0, rows: [...olderRows(0), ...baseRows(OLDER_H)], contentH: 456 + OLDER_H, anchor: true, topId: 'msg-0' }
+        },
+        {
+          title: 'Automatic offset adjustment',
+          body: `<p>Before the frame is drawn, SwiftUI's content offset adjustment looks up where msg-0 ended up and moves the offset by the same 240 pt so it is back at the anchor. Measured on an iPhone 17 simulator: the visible row moved 0 pt.</p>`,
+          state: { offset: OLDER_H, rows: [...olderRows(0), ...baseRows(OLDER_H)], contentH: 456 + OLDER_H, anchor: true, topId: 'msg-0' }
+        },
+        {
+          title: 'The switch that turns it off',
+          body: `<p>That correction is the "automatic" behaviour of <code>scrollContentOffsetAdjustmentBehavior</code>. Setting it to <code>.disabled</code> on the insert transaction skips the previous step, and the jump comes back in full. Leave it at the default.</p><pre>var t = Transaction()
+t.scrollContentOffsetAdjustmentBehavior = .disabled  // don't
+withTransaction(t) { messages.insert(contentsOf: older, at: 0) }</pre>`,
+          state: { offset: 0, rows: [...olderRows(0), ...baseRows(OLDER_H)], contentH: 456 + OLDER_H, anchor: true, topId: 'msg-0', disabled: true }
+        }
+      ]
+    },
+    virtual: {
+      name: 'Fixed canvas (Steady)',
+      steps: [
+        {
+          title: 'A content size that never changes',
+          body: `<p>Steady's <code>ChatLayout</code> reports a constant content height of 1,000,000 pt and places msg-0 at y = 500,000. Negative <code>contentInset</code> values hide the empty space above and below, so the user can only scroll where messages exist. Scrolled to the top, the offset is exactly the anchor.</p>`,
+          state: { virtual: true, offset: ANCHOR, rows: baseRows(ANCHOR), boundsTop: ANCHOR, boundsBottom: ANCHOR + 456 }
+        },
+        {
+          title: 'Older messages extend upward',
+          body: `<p>The layout measures the four new rows and assigns them positions <em>above</em> the anchor, from 499,760 up to 500,000. Existing rows keep their y positions. The top inset shrinks by 240 pt to expose the new rows. The offset is never touched, so nothing on screen moves.</p><pre>list.prepend(older)
+// ChatLayout stacks the new rows upward from msg-0.
+// existing rows: unchanged. contentOffset: unchanged.</pre>`,
+          state: { virtual: true, offset: ANCHOR, rows: [...olderRows(ANCHOR - OLDER_H), ...baseRows(ANCHOR)], boundsTop: ANCHOR - OLDER_H, boundsBottom: ANCHOR + 456 }
+        },
+        {
+          title: 'The user scrolls into history',
+          body: `<p>Scrolling up now reaches the new rows, because the scrollable region grew upward. There was no timing problem to solve: no measuring after layout, no offset correction, nothing that can race with a second insert or a cell resize.</p>`,
+          state: { virtual: true, offset: ANCHOR - OLDER_H, rows: [...olderRows(ANCHOR - OLDER_H), ...baseRows(ANCHOR)], boundsTop: ANCHOR - OLDER_H, boundsBottom: ANCHOR + 456, userScroll: true }
+        },
+        {
+          title: 'New messages extend downward',
+          body: `<p>The same idea works at the other end. The user is back at the newest message, and two new ones arrive. <code>append</code> places them below the last row and shrinks the bottom inset to expose them. Nothing above moves; Steady then scrolls them into view.</p><pre>list.append(message)
+// ChatLayout places it under the last row.</pre>`,
+          state: { virtual: true, offset: ANCHOR + 156, rows: [...olderRows(ANCHOR - OLDER_H), ...baseRows(ANCHOR), ...layoutRows([{ id: 'msg-8', label: 'msg-8', h: 48, kind: 'me', isNew: true }, { id: 'msg-9', label: 'msg-9', h: 48, kind: 'other', isNew: true }], ANCHOR + 456)], boundsTop: ANCHOR - OLDER_H, boundsBottom: ANCHOR + 552, userScroll: true }
+        }
+      ]
+    }
+  };
+
+  // ----- dom -----
+  const $ = id => document.getElementById(id);
+  const world = $('world'), strip = $('strip'), body = $('body'), readout = $('readout'), dots = $('dots');
+  const maskTop = $('maskTop'), maskBottom = $('maskBottom'), edgeTop = $('edgeTop'), brace = $('brace'), braceLbl = $('braceLbl'), anchorEl = $('anchor');
+  let strategy = 'plain', step = 0;
+  const rowEls = new Map();
+
+  function screenY(y, offset) { return VP_TOP + (y - offset); }
+
+  function render(animate) {
+    const S = strategies[strategy], st = S.steps[step].state;
+    world.classList.toggle('no-anim', !animate);
+
+    // rows
+    const seen = new Set();
+    st.rows.forEach(r => {
+      seen.add(r.id);
+      let el = rowEls.get(r.id);
+      const top = screenY(r.y, st.offset);
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'row enter';
+        el.innerHTML = '<div class="bubble"></div>';
+        el.style.height = r.h + 'px';
+        el.style.transform = `translateY(${top}px)`;
+        strip.appendChild(el);
+        rowEls.set(r.id, el);
+        requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove('enter')));
+      } else {
+        el.style.height = r.h + 'px';
+        el.style.transform = `translateY(${top}px)`;
+      }
+      el.querySelector('.bubble').textContent = r.label;
+      el.classList.toggle('me', r.kind === 'me');
+      el.classList.toggle('other', r.kind === 'other');
+      el.classList.toggle('loader', r.kind === 'loader');
+      el.classList.toggle('new', !!r.isNew);
+      const visible = top + r.h > VP_TOP && top < VP_TOP + VP_H;
+      el.classList.toggle('off', !visible);
+    });
+    for (const [id, el] of rowEls) if (!seen.has(id)) { el.remove(); rowEls.delete(id); }
+
+    // masks, edge, brace
+    if (st.virtual) {
+      const tY = screenY(st.boundsTop, st.offset), bY = screenY(st.boundsBottom, st.offset);
+      maskTop.classList.add('on'); maskBottom.classList.add('on');
+      maskTop.style.top = '0px'; maskTop.style.height = Math.max(0, tY) + 'px';
+      $('maskTopLbl').textContent = `inset.top = −${fmt(st.boundsTop)}`;
+      maskBottom.style.top = bY + 'px'; maskBottom.style.height = Math.max(0, 580 - bY) + 'px';
+      $('maskBottomLbl').textContent = `inset.bottom = −${fmt(VIRTUAL_H - st.boundsBottom)}`;
+      edgeTop.style.opacity = 0;
+      // brace: from bounds top to viewport top (how far the user can still scroll up)
+      const bTop = Math.max(tY, 8), h = VP_TOP - bTop;
+      brace.style.opacity = 1;
+      brace.classList.toggle('zero', h <= 0);
+      brace.style.transform = `translateY(${Math.min(bTop, VP_TOP)}px)`;
+      brace.style.height = Math.max(0, h) + 'px';
+      braceLbl.innerHTML = `offset<b>${fmt(st.offset)}</b>bounds.top<b>${fmt(st.boundsTop)}</b>`;
+    } else {
+      maskTop.classList.remove('on'); maskBottom.classList.remove('on');
+      const cY = screenY(0, st.offset);
+      edgeTop.style.opacity = 1;
+      edgeTop.style.transform = `translateY(${cY}px)`;
+      brace.style.opacity = 1;
+      brace.classList.toggle('zero', st.offset === 0);
+      brace.style.transform = `translateY(${cY}px)`;
+      brace.style.height = st.offset + 'px';
+      braceLbl.innerHTML = `offset.y<b>${fmt(st.offset)} pt</b>`;
+    }
+    anchorEl.classList.toggle('on', !!st.anchor);
+
+    // shift of msg-0 vs previous step
+    const prev = step > 0 ? S.steps[step - 1].state : null;
+    const cur0 = st.rows.find(r => r.id === 'msg-0'), prev0 = prev && prev.rows.find(r => r.id === 'msg-0');
+    let shift = null;
+    if (cur0 && prev0) shift = screenY(cur0.y, st.offset) - screenY(prev0.y, prev.offset);
+    const topRow = st.rows.filter(r => screenY(r.y, st.offset) + r.h > VP_TOP).sort((a, b) => a.y - b.y)[0];
+
+    // readout
+    const cells = [];
+    cells.push(cell('contentOffset.y', `${fmt(st.offset)} <small>pt</small>`));
+    cells.push(cell('contentSize.height', `${fmt(st.virtual ? VIRTUAL_H : st.contentH)} <small>pt</small>`));
+    cells.push(cell('row at top edge', topRow ? topRow.label : '—'));
+    if (shift === null) cells.push(cell('msg-0 moved on screen', '—'));
+    else if (st.userScroll) cells.push(cell('msg-0 moved on screen', '— <small>user scrolled</small>'));
+    else cells.push(cell('msg-0 moved on screen', `${shift > 0 ? '+' : ''}${fmt(shift)} <small>pt</small>`, shift === 0 ? 'good' : 'bad'));
+    readout.innerHTML = cells.join('');
+
+    // text
+    const s = S.steps[step];
+    body.innerHTML = `<h2>${s.title}</h2>${s.body}`;
+    $('stepnum').textContent = `Step ${step + 1} of ${S.steps.length}`;
+    dots.innerHTML = S.steps.map((_, i) => `<button class="dot" aria-label="Step ${i + 1}" ${i === step ? 'aria-current="step"' : ''} data-i="${i}"></button>`).join('');
+    $('prev').disabled = step === 0;
+    $('next').textContent = step === S.steps.length - 1 ? 'Start over' : 'Next';
+  }
+  function cell(k, v, cls = '') { return `<div class="cell"><div class="k">${k}</div><div class="v ${cls}">${v}</div></div>`; }
+
+  // ----- events -----
+  function syncHash() { history.replaceState(null, '', `#${strategy}/${step}`); }
+  function selectTab(name) {
+    document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.strategy === name ? 'true' : 'false'));
+  }
+  function go(n) { const len = strategies[strategy].steps.length; step = (n + len) % len; render(true); syncHash(); }
+  $('prev').addEventListener('click', () => go(step - 1));
+  $('next').addEventListener('click', () => go(step + 1));
+  dots.addEventListener('click', e => { const b = e.target.closest('.dot'); if (b) go(+b.dataset.i); });
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    selectTab(t.dataset.strategy);
+    strategy = t.dataset.strategy; step = 0;
+    for (const [, el] of rowEls) el.remove(); rowEls.clear();
+    render(false);
+    syncHash();
+  }));
+  document.addEventListener('keydown', e => {
+    if (e.target.matches('input, textarea')) return;
+    if (e.key === 'ArrowRight') { go(step + 1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { go(step - 1); e.preventDefault(); }
+  });
+
+  // Open at a given approach and step, e.g. #virtual/1.
+  const [hashStrategy, hashStep] = location.hash.slice(1).split('/');
+  if (strategies[hashStrategy]) {
+    strategy = hashStrategy;
+    step = Math.min(Math.max(0, parseInt(hashStep, 10) || 0), strategies[strategy].steps.length - 1);
+    selectTab(strategy);
+  }
+  render(false);
+})();
+</script>
+
+</body></html>

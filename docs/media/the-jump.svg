@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 490" width="840" height="490" role="img" aria-label="Animation. In most lists, an older page slams in at the top and shoves the message you are reading off screen. In Steady, the page lands above the screen and nothing moves."><style>
+  .bg { fill: #f6f8fa; }
+  text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; fill: #1c1c1e; }
+  .title { font-size: 21px; font-weight: 700; }
+  .caption { font-size: 14px; fill: #6e6e73; }
+  .face { font-size: 44px; font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
+  .phone { fill: none; stroke: #8e8e93; stroke-width: 2.5; }
+  .msg { fill: #d8d8dd; }
+  .read { fill: #0a84ff; }
+  .new { fill: #34c75933; stroke: #1f8f3a; stroke-width: 1.5; stroke-dasharray: 4 3; }
+  @media (prefers-color-scheme: dark) {
+    .bg { fill: #161b22; }
+    text { fill: #f2f2f7; }
+    .caption { fill: #a1a1a6; }
+    .msg { fill: #48484a; }
+    .new { stroke: #32d74b; }
+  }
+
+  /* One 5 s loop: calm, the page lands at 30%, hold, reset. */
+  .old-plain, .new-plain, .new-steady, .shake-plain, .calm-plain, .after-plain, .calm-steady, .after-steady {
+    animation-duration: 5s; animation-iteration-count: infinite; animation-timing-function: ease-out;
+  }
+  .old-plain { animation-name: shove; }
+  .new-plain { animation-name: slam; }
+  .shake-plain { animation-name: shake; }
+  .new-steady { animation-name: land; }
+  .calm-plain, .calm-steady { animation-name: calm; }
+  .after-plain, .after-steady { animation-name: after; }
+
+  @keyframes shove {
+    0%, 30% { transform: translateY(0); }
+    34% { transform: translateY(122px); }
+    38% { transform: translateY(102px); }
+    41%, 90% { transform: translateY(108px); }
+    96%, 100% { transform: translateY(0); }
+  }
+  @keyframes slam {
+    0%, 30% { transform: translateY(0); opacity: 1; }
+    34% { transform: translateY(134px); }
+    38% { transform: translateY(114px); }
+    41%, 88% { transform: translateY(120px); opacity: 1; }
+    92% { opacity: 0; transform: translateY(120px); }
+    100% { opacity: 0; transform: translateY(0); }
+  }
+  @keyframes shake {
+    0%, 33% { transform: translateX(0); }
+    35% { transform: translateX(-6px); }
+    37% { transform: translateX(6px); }
+    39% { transform: translateX(-3px); }
+    41%, 100% { transform: translateX(0); }
+  }
+  @keyframes land {
+    0%, 26% { transform: translateY(-24px); opacity: 0; }
+    34%, 88% { transform: translateY(0); opacity: 1; }
+    94%, 100% { transform: translateY(0); opacity: 0; }
+  }
+  @keyframes calm {
+    0%, 32% { opacity: 1; }
+    34%, 92% { opacity: 0; }
+    96%, 100% { opacity: 1; }
+  }
+  @keyframes after {
+    0%, 32% { opacity: 0; }
+    34%, 92% { opacity: 1; }
+    96%, 100% { opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; }
+  }
+</style>
+<rect width="840" height="490" rx="16" class="bg"/>
+<text x="20" y="40" class="title">Most lists</text>
+<clipPath id="clip-plain"><rect x="40" y="160" width="170" height="250" rx="20"/></clipPath>
+<g class="shake-plain">
+<g clip-path="url(#clip-plain)">
+<g class="new-plain">
+<rect x="108" y="52" width="90" height="26" rx="9" class="new"/>
+<rect x="52" y="88" width="75" height="26" rx="9" class="new"/>
+<rect x="103" y="124" width="95" height="26" rx="9" class="new"/>
+</g>
+<g class="old-plain">
+<rect x="52" y="172" width="80" height="26" rx="9" class="msg"/>
+<rect x="88" y="208" width="110" height="26" rx="9" class="msg"/>
+<rect x="52" y="244" width="70" height="26" rx="9" class="msg"/>
+<rect x="52" y="280" width="100" height="26" rx="9" class="read"/>
+<rect x="108" y="316" width="90" height="26" rx="9" class="msg"/>
+<rect x="52" y="352" width="75" height="26" rx="9" class="msg"/>
+<rect x="103" y="388" width="95" height="26" rx="9" class="msg"/>
+</g></g>
+<rect x="40" y="160" width="170" height="250" rx="20" class="phone"/>
+</g>
+<text x="280" y="280" class="face calm-plain" text-anchor="middle">🙂</text>
+<text x="280" y="280" class="face after-plain" text-anchor="middle">😵‍💫</text>
+<text x="210" y="454" class="caption" text-anchor="middle">A page arrives. Your message is shoved away.</text>
+<text x="440" y="40" class="title">Steady</text>
+<clipPath id="clip-steady"><rect x="460" y="160" width="170" height="250" rx="20"/></clipPath>
+<g class="shake-steady">
+<g class="new-steady">
+<rect x="528" y="56" width="90" height="26" rx="9" class="new"/>
+<rect x="472" y="92" width="75" height="26" rx="9" class="new"/>
+<rect x="523" y="128" width="95" height="26" rx="9" class="new"/>
+</g>
+<g clip-path="url(#clip-steady)">
+<g class="old-steady">
+<rect x="472" y="172" width="80" height="26" rx="9" class="msg"/>
+<rect x="508" y="208" width="110" height="26" rx="9" class="msg"/>
+<rect x="472" y="244" width="70" height="26" rx="9" class="msg"/>
+<rect x="472" y="280" width="100" height="26" rx="9" class="read"/>
+<rect x="528" y="316" width="90" height="26" rx="9" class="msg"/>
+<rect x="472" y="352" width="75" height="26" rx="9" class="msg"/>
+<rect x="523" y="388" width="95" height="26" rx="9" class="msg"/>
+</g></g>
+<rect x="460" y="160" width="170" height="250" rx="20" class="phone"/>
+</g>
+<text x="700" y="280" class="face calm-steady" text-anchor="middle">🙂</text>
+<text x="700" y="280" class="face after-steady" text-anchor="middle">😌☕</text>
+<text x="630" y="454" class="caption" text-anchor="middle">A page arrives. Nothing moves.</text>
+</svg>

@@ -37,6 +37,11 @@ where Item.ID: Sendable {
     /// there is nothing older. Fires at most once until `prepend(_:)` answers.
     public var onNeedsOlder: ((_ oldest: Item) -> Void)?
 
+    /// Menu shown when the user long-presses an item. Returning nil, or
+    /// leaving this nil, shows no menu. Cells adopting
+    /// `ChatContextMenuPreviewing` lift only their preview view.
+    public var contextMenuProvider: ((Item) -> UIMenu?)?
+
     /// Scroll position that triggers `onNeedsOlder`. 0 is the top, 1 the bottom.
     public var prefetchFraction: CGFloat = 0.25
 
@@ -48,6 +53,18 @@ where Item.ID: Sendable {
     /// Extra space below the last item.
     public var bottomInset: CGFloat = 0 {
         didSet { reapplyInsets() }
+    }
+
+    /// Shows the vertical scroll indicator. Off by default. It tracks the
+    /// loaded items only, so it jumps when an older page arrives.
+    public var showsScrollIndicator = false {
+        didSet {
+            guard isViewLoaded, showsScrollIndicator != oldValue else { return }
+            collectionView.showsVerticalScrollIndicator = showsScrollIndicator
+            if showsScrollIndicator {
+                collectionView.flashScrollIndicators()
+            }
+        }
     }
 
     /// Shown centred until the first `setItems(_:)`. Nil shows nothing. A
@@ -115,14 +132,19 @@ where Item.ID: Sendable {
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.backgroundColor = .clear
         collectionView.alwaysBounceVertical = true
-        // Meaningless on a 1,000,000 pt canvas.
-        collectionView.showsVerticalScrollIndicator = false
+        // Sized from the loaded items: the hiding insets cut the canvas down
+        // to them.
+        collectionView.showsVerticalScrollIndicator = showsScrollIndicator
         // updateInsets() adds the safe area itself.
         collectionView.contentInsetAdjustmentBehavior = .never
         collectionView.keyboardDismissMode = .interactive
 
         proxy.onScroll = { [weak self] in self?.scrolled() }
         proxy.onTap = { [weak self] in self?.view.window?.endEditing(true) }
+        proxy.menuForItem = { [weak self] index in
+            guard let self, index < items.count else { return nil }
+            return contextMenuProvider?(items[index])
+        }
         collectionView.delegate = proxy
 
         // Tap to dismiss the keyboard. Ends editing on the window because the
@@ -333,9 +355,55 @@ final class ChatListProxy: NSObject, UICollectionViewDelegate {
 
     var onScroll: (() -> Void)?
     var onTap: (() -> Void)?
+    /// Menu for the item at this index, or nil for none.
+    var menuForItem: ((Int) -> UIMenu?)?
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         onScroll?()
+    }
+
+    // MARK: Context menu
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        contextMenuConfigurationForItemsAt indexPaths: [IndexPath],
+        point: CGPoint
+    ) -> UIContextMenuConfiguration? {
+        // Built now, while the index still points at the pressed item. The
+        // menu captures the item, so a prepend while it is open is harmless.
+        guard indexPaths.count == 1,
+              let menu = menuForItem?(indexPaths[0].item)
+        else { return nil }
+        return UIContextMenuConfiguration(actionProvider: { _ in menu })
+    }
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        contextMenuConfiguration configuration: UIContextMenuConfiguration,
+        highlightPreviewForItemAt indexPath: IndexPath
+    ) -> UITargetedPreview? {
+        preview(in: collectionView, at: indexPath)
+    }
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        contextMenuConfiguration configuration: UIContextMenuConfiguration,
+        dismissalPreviewForItemAt indexPath: IndexPath
+    ) -> UITargetedPreview? {
+        preview(in: collectionView, at: indexPath)
+    }
+
+    /// Lifts the cell's preview view with its own corners. Nil falls back to
+    /// the whole cell.
+    private func preview(in collectionView: UICollectionView, at indexPath: IndexPath) -> UITargetedPreview? {
+        guard let cell = collectionView.cellForItem(at: indexPath) as? ChatContextMenuPreviewing else {
+            return nil
+        }
+        let view = cell.contextMenuPreviewView
+        let parameters = UIPreviewParameters()
+        parameters.backgroundColor = .clear
+        parameters.visiblePath = UIBezierPath(roundedRect: view.bounds, cornerRadius: view.layer.cornerRadius)
+        return UITargetedPreview(view: view, parameters: parameters)
     }
 
     @objc func handleTap() {

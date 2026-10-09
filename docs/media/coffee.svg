@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 140" width="360" height="140" role="img" aria-label="A steaming cup of coffee next to a twinkling star."><style>
+  .cup { fill: #f2e6d8; stroke: #6b4f3a; stroke-width: 3; }
+  .coffee { fill: #6b4f3a; }
+  .saucer { fill: #e8d9c7; stroke: #6b4f3a; stroke-width: 3; }
+  .steam { fill: none; stroke: #a1a1a6; stroke-width: 3.5; stroke-linecap: round; opacity: 0; animation: rise 3s ease-in-out infinite; }
+  .s2 { animation-delay: 1s; } .s3 { animation-delay: 2s; }
+  .star { fill: #ffcc00; stroke: #d9a400; stroke-width: 2; stroke-linejoin: round; transform-box: fill-box; transform-origin: center; animation: twinkle 2.4s ease-in-out infinite; }
+  .spark { fill: #ffcc00; transform-box: fill-box; transform-origin: center; animation: spark 2.4s ease-in-out infinite; }
+  .p2 { animation-delay: .8s; } .p3 { animation-delay: 1.6s; }
+  @keyframes rise { 0% { opacity: 0; transform: translateY(8px); } 30% { opacity: .9; } 100% { opacity: 0; transform: translateY(-16px); } }
+  @keyframes twinkle { 0%, 100% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.12) rotate(8deg); } }
+  @keyframes spark { 0%, 100% { opacity: 0; transform: scale(.4); } 50% { opacity: 1; transform: scale(1); } }
+  @media (prefers-color-scheme: dark) {
+    .cup { fill: #e9dccd; stroke: #c9a27e; } .saucer { fill: #d8c7b3; stroke: #c9a27e; } .steam { stroke: #8e8e93; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } .steam { opacity: .7; } }
+</style>
+<path class="steam" d="M92 52 q-8 -10 0 -20 q8 -10 0 -20"/>
+<path class="steam s2" d="M110 52 q-8 -10 0 -20 q8 -10 0 -20"/>
+<path class="steam s3" d="M128 52 q-8 -10 0 -20 q8 -10 0 -20"/>
+<ellipse class="saucer" cx="110" cy="122" rx="66" ry="10"/>
+<path class="cup" d="M66 58 h88 v30 a44 30 0 0 1 -88 0 z"/>
+<path class="cup" d="M154 66 a16 16 0 0 1 0 32" fill="none"/>
+<ellipse class="coffee" cx="110" cy="60" rx="40" ry="5"/>
+<polygon class="star" points="260,30 271,56 299,58 277,76 284,103 260,88 236,103 243,76 221,58 249,56"/>
+<circle class="spark" cx="314" cy="36" r="4"/>
+<circle class="spark p2" cx="212" cy="40" r="3"/>
+<circle class="spark p3" cx="308" cy="104" r="3.5"/>
+</svg>
